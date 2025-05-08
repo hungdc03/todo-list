@@ -1,34 +1,51 @@
-import { Button, Card, Row, Input, Col, Select, Space } from 'antd';
-import React, { useState } from 'react';
-import { CirclePlus, Search } from 'lucide-react';
-import { useSearchParams } from 'react-router';
-import _ from 'lodash';
+import { Card, Input, Select } from 'antd';
+import { CirclePlus } from 'lucide-react';
+import React from 'react';
+import { STATUS_OPTIONS } from '~/utils/const';
 
-const MAX_DEBOUNCE_TIME = 500;
+interface ToolbarProps {
+  onSearch: (query: string) => void;
+  onChangeStatus: (status: string) => void;
+  onCreateTask: () => void;
+}
 
-const Toolbar = ({ handleCreate }: any) => {
-  const [search, setSearch] = useSearchParams();
+export const ALL_STATUS = 'all';
 
-  const handleSearch = _.debounce((e: any) => {
-    setSearch({ search: e.target.value });
-  }, MAX_DEBOUNCE_TIME);
+const STATUS_OPTS = [
+  {
+    label: 'All',
+    value: ALL_STATUS,
+  },
+  ...STATUS_OPTIONS,
+];
+
+const Toolbar: React.FC<ToolbarProps> = ({ onSearch, onChangeStatus, onCreateTask }) => {
+  const handleSearch = (e: any) => {
+    onSearch(e.target.value);
+  };
 
   return (
     <Card>
       <div className="mb-3 flex gap-2">
         <div className="flex-1">
-          <Input placeholder="Tìm kiếm" onChange={handleSearch} />
+          <Input placeholder="Search" onChange={handleSearch} />
         </div>
         <div className="flex-1">
-          <Select className="w-full" placeholder="Trạng thái" />
+          <Select
+            options={STATUS_OPTS}
+            className="w-full"
+            placeholder="Status"
+            onChange={(value) => onChangeStatus(value)}
+            defaultValue={ALL_STATUS}
+          />
         </div>
       </div>
       <button
         className="w-full flex bg-black text-white font-semibold items-center justify-center gap-2 border-2 rounded-md py-2 cursor-pointer hover:shadow-md"
-        onClick={handleCreate}
+        onClick={onCreateTask}
       >
         <CirclePlus className="w-4 h-4" />
-        Tạo mới
+        Create Task
       </button>
     </Card>
   );

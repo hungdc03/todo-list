@@ -5,9 +5,9 @@ const STATUS = {
 };
 
 const STATUS_OPTIONS = [
-  { label: 'Chưa làm', value: STATUS.TODO },
-  { label: 'Đang thực hiện', value: STATUS.IN_PROGRESS },
-  { label: 'Đã hoàn thành', value: STATUS.DONE },
+  { label: 'Not started', value: STATUS.TODO },
+  { label: 'In progress', value: STATUS.IN_PROGRESS },
+  { label: 'Completed', value: STATUS.DONE },
 ];
 
 export { STATUS, STATUS_OPTIONS };

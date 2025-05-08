@@ -1,37 +1,200 @@
-import { Card, Typography, Form, Input, Button } from 'antd';
-import React, { useState } from 'react';
+import { Card, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
 import _ from 'lodash';
 import TodoForm from './Form';
-import { createTodoByLocalStorage } from '~/utils';
+import {
+  createTodoByLocalStorage,
+  deleteTodoByLocalStorage,
+  generateId,
+  getTodoById,
+  updateTodoByLocalStorage,
+} from '~/utils';
+import TaskDetailTailwind from '~/components/TaskDetailTailwind';
+import { STATUS } from '~/utils/const';
+
 interface DetailProps {
-  task: any;
-  isCreate?: boolean;
+  id: string;
+  onTaskCreated?: () => void;
+  onTaskUpdated?: () => void;
+  onDeleteTask?: () => void;
 }
 
-const { Title, Text } = Typography;
+interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
-const Detail = ({ task }: DetailProps) => {
-  const [isEdit, setIsEdit] = useState(!!task);
-  const isCreating = isEdit || _.isEmpty(task);
-  const isEditing = isEdit && !_.isEmpty(task);
+interface TaskType {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  subTasks: SubTask[];
+}
+
+const Detail = ({ id, onTaskCreated, onTaskUpdated, onDeleteTask }: DetailProps) => {
+  const [isEdit, setIsEdit] = useState(false);
+  const [task, setTask] = useState<TaskType | null>(null);
+  const isEditingOrCreating = isEdit || id === 'create';
 
   const handleSubmit = (values: any) => {
-    createTodoByLocalStorage(values);
+    if (id === 'create') {
+      const newTask = {
+        ...values,
+        id: generateId(),
+        subTasks: [],
+      };
+      createTodoByLocalStorage(newTask);
+      if (onTaskCreated) {
+        onTaskCreated();
+      }
+    } else {
+      const updatedTask = {
+        ...task,
+        ...values,
+      };
+      updateTodoByLocalStorage(id, updatedTask);
+      setTask(updatedTask);
+      setIsEdit(false);
+      if (onTaskUpdated) {
+        onTaskUpdated();
+      }
+    }
   };
 
-  if (isCreating) {
+  const handleStatusChange = (status: string) => {
+    if (!task) return;
+
+    const newTask = { ...task, status };
+    updateTodoByLocalStorage(id, newTask);
+    setTask(newTask);
+
+    if (onTaskUpdated) {
+      onTaskUpdated();
+    }
+  };
+
+  const handleStartEdit = () => {
+    setIsEdit(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEdit(false);
+  };
+
+  const handleAddSubTask = (title: string) => {
+    if (!task) return;
+
+    const newSubTask = {
+      id: generateId(),
+      title,
+      completed: false,
+    };
+
+    const newTask = {
+      ...task,
+      subTasks: [...(task.subTasks || []), newSubTask],
+    };
+
+    updateTodoByLocalStorage(id, newTask);
+    setTask(newTask);
+
+    if (onTaskUpdated) {
+      onTaskUpdated();
+    }
+  };
+
+  const handleSubTaskToggle = (subTaskId: string, completed: boolean) => {
+    if (!task) return;
+
+    const newTask = {
+      ...task,
+      subTasks: (task.subTasks || []).map((subTask) =>
+        subTask.id === subTaskId ? { ...subTask, completed } : subTask
+      ),
+    };
+
+    updateTodoByLocalStorage(id, newTask);
+    setTask(newTask);
+
+    if (onTaskUpdated) {
+      onTaskUpdated();
+    }
+  };
+
+  const handleSubTaskDelete = (subTaskId: string) => {
+    if (!task) return;
+
+    const newTask = {
+      ...task,
+      subTasks: (task.subTasks || []).filter((subTask) => subTask.id !== subTaskId),
+    };
+
+    updateTodoByLocalStorage(id, newTask);
+    setTask(newTask);
+
+    if (onTaskUpdated) {
+      onTaskUpdated();
+    }
+  };
+
+  const handleEditSubTask = (subTaskId: string, title: string) => {
+    if (!task) return;
+
+    const newTask = {
+      ...task,
+      subTasks: (task.subTasks || []).map((subTask) => (subTask.id === subTaskId ? { ...subTask, title } : subTask)),
+    };
+
+    updateTodoByLocalStorage(id, newTask);
+    setTask(newTask);
+
+    if (onTaskUpdated) {
+      onTaskUpdated();
+    }
+  };
+
+  useEffect(() => {
+    if (id === 'create') {
+      setTask(null);
+    } else {
+      const existingTask = getTodoById(id);
+      setTask({
+        ...existingTask,
+        subTasks: existingTask?.subTasks || [],
+      });
+    }
+    setIsEdit(id === 'create');
+  }, [id]);
+
+  if (isEditingOrCreating) {
     return (
       <Card>
-        <TodoForm handleSubmit={handleSubmit} />
+        <TodoForm
+          id={id}
+          handleSubmit={handleSubmit}
+          initialValues={id === 'create' ? { status: STATUS.TODO } : task}
+          onCancel={id === 'create' ? onTaskCreated : handleCancelEdit}
+        />
       </Card>
     );
   }
 
   return (
-    <Card>
-      <Title level={3}>{task.title}</Title>
-      <Text>{task.description}</Text>
-    </Card>
+    <TaskDetailTailwind
+      title={_.get(task, 'title', '')}
+      description={_.get(task, 'description', '')}
+      status={_.get(task, 'status', '')}
+      subTasks={_.get(task, 'subTasks', [])}
+      onEdit={handleStartEdit}
+      onStatusChange={handleStatusChange}
+      onAddSubTask={handleAddSubTask}
+      onSubTaskToggle={handleSubTaskToggle}
+      onSubTaskDelete={handleSubTaskDelete}
+      onEditSubTask={handleEditSubTask}
+      onDeleteTask={onDeleteTask}
+    />
   );
 };
 

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { getAllQueryParams, getTodosByLocalStorage } from '~/utils';
+import { getTodosByLocalStorage } from '~/utils';
 import { Card, Flex, Row, Space, Tag, Typography } from 'antd';
-import { STATUS } from '~/utils/const';
-import { useSearchParams, useNavigate } from 'react-router';
+import { STATUS, STATUS_OPTIONS } from '~/utils/const';
 import _ from 'lodash';
-
+import { styled } from 'styled-components';
+import StyledTag from '~/components/StyledTag';
+import { CheckCircleFilled } from '@ant-design/icons';
+import StyledCard from '~/components/StyledCard';
 const { Title, Text } = Typography;
 
 const STATUS_COLOR = {
@@ -13,49 +15,47 @@ const STATUS_COLOR = {
   [STATUS.DONE]: 'green',
 };
 
-const List = () => {
-  const [todos, setTodos] = useState<any[]>([]);
-  const [search, setSearch] = useSearchParams();
-  const searchValue = search.get('search');
+interface ListProps {
+  id: string;
+  onSelectTask: (id: string) => void;
+  todos: any[];
+}
 
-  const onClickView = (id: string) => {
-    setSearch({ ...getAllQueryParams(), id });
-  };
+const CustomCard = styled(Card)<{ isActive: boolean }>`
+  background: #ffffff !important;
+  ${({ isActive }) =>
+    isActive && `border-right: 2px solid #000 !important; box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1) !important;`}
+`;
 
-  useEffect(() => {
-    const data = getTodosByLocalStorage();
-    if (searchValue) {
-      const filteredTodos = data.filter((todo: any) => _.get(todo, 'title', '').includes(searchValue));
-      setTodos(filteredTodos);
-    } else {
-      setTodos(data);
-    }
-  }, [search]);
-
+const List: React.FC<ListProps> = ({ id, todos, onSelectTask }) => {
   return (
-    <div className="h-full overflow-y-auto" style={{ padding: '4px', height: '100%' }}>
+    <div className="h-full w-full overflow-y-auto" style={{ padding: '4px', height: '100%' }}>
       {todos.length === 0 ? (
-        <div className="h-40 flex items-center justify-center">
-          <Text className="text-gray-400 text-center">Không có công việc nào. Hãy tạo mới một công việc!</Text>
-        </div>
+        <StyledCard className="h-40 flex items-center justify-center">
+          <Text className="text-gray-400 text-center">No tasks. Create a new task!</Text>
+        </StyledCard>
       ) : (
         <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
           {todos.map((todo) => (
-            <Card onClick={() => onClickView(todo.id)} key={todo.id}>
-              <Flex justify="space-between">
+            <CustomCard
+              className="cursor-pointer"
+              onClick={() => onSelectTask(todo.id)}
+              key={todo.id}
+              isActive={id === todo.id}
+            >
+              <div className="flex justify-between items-center">
                 <Title level={4} ellipsis={{ tooltip: true }}>
                   {todo.title}
                 </Title>
-                <Tag bordered={false} color={STATUS_COLOR[todo.status] || 'blue'}>
-                  {todo.status === STATUS.TODO
-                    ? 'Chưa làm'
-                    : todo.status === STATUS.IN_PROGRESS
-                      ? 'Đang làm'
-                      : 'Hoàn thành'}
-                </Tag>
-              </Flex>
+                <div className="min-w-[110px] min-h-[28px] flex items-center justify-center">
+                  <StyledTag status={todo.status} className="w-full h-[28px] flex items-center justify-center">
+                    <CheckCircleFilled className="mr-1" />
+                    {_.capitalize(STATUS_OPTIONS.find((s) => s.value === todo.status)?.label)}
+                  </StyledTag>
+                </div>
+              </div>
               <Text>{todo.description}</Text>
-            </Card>
+            </CustomCard>
           ))}
         </Space>
       )}
