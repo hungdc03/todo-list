@@ -6,6 +6,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   CheckOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 import { STATUS, STATUS_OPTIONS } from '~/utils/const';
 import { Button, Card, Typography } from 'antd';
@@ -13,7 +14,7 @@ import { styled } from 'styled-components';
 import CustomButton from './Button';
 import _ from 'lodash';
 import StyledCard from './StyledCard';
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const CustomCard = styled(Card)`
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
@@ -102,6 +103,7 @@ const TaskDetailTailwind: React.FC<TaskDetailTailwindProps> = ({
             }`}
             onClick={() => onStatusChange?.(STATUS.TODO)}
           >
+            <UnorderedListOutlined className="mr-1.5" />
             Todo
           </button>
 
@@ -145,13 +147,13 @@ const TaskDetailTailwind: React.FC<TaskDetailTailwindProps> = ({
           </CustomAddSubtask>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 ">
           <CustomCard>
             {isCreateSubTask && (
-              <div className="flex items-center">
+              <div className="flex items-center px-3">
                 <input
                   onChange={(e) => setSubTaskTitle(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2"
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none"
                   placeholder="Subtask title"
                 />
                 <CustomButton
@@ -162,7 +164,7 @@ const TaskDetailTailwind: React.FC<TaskDetailTailwindProps> = ({
                   Add
                 </CustomButton>
                 <button
-                  className="ml-2 px-4 py-1.5 cursor-pointer hover:bg-gray-100 rounded-md"
+                  className="ml-2 lg:px-4 py-1.5 cursor-pointer hover:bg-gray-100 rounded-md"
                   onClick={handleCancelAddSubTask}
                 >
                   Cancel
@@ -175,7 +177,7 @@ const TaskDetailTailwind: React.FC<TaskDetailTailwindProps> = ({
               </div>
             )}
             {subTasks.map((subtask) => (
-              <div key={subtask.id} className="flex items-center justify-between py-1">
+              <div key={subtask.id} className="flex items-center justify-between py-1 hover:bg-gray-50 rounded-md px-4">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -183,9 +185,9 @@ const TaskDetailTailwind: React.FC<TaskDetailTailwindProps> = ({
                     onChange={(e) => onSubTaskToggle?.(subtask.id, e.target.checked)}
                     className="w-4 h-4 border-gray-300 rounded mr-2 accent-black"
                   />
-                  <span className={`${subtask.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                  <Text className={`${subtask.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                     {subtask.title}
-                  </span>
+                  </Text>
                 </label>
                 <button
                   onClick={() => onSubTaskDelete?.(subtask.id)}

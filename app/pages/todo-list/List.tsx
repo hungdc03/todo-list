@@ -23,8 +23,16 @@ interface ListProps {
 
 const CustomCard = styled(Card)<{ isActive: boolean }>`
   background: #ffffff !important;
-  ${({ isActive }) =>
-    isActive && `border-right: 2px solid #000 !important; box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1) !important;`}
+
+  @media (max-width: 1023px) {
+    ${({ isActive }) =>
+      isActive && `border-bottom: 2px solid #000 !important; box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1) !important;`}
+  }
+
+  @media (min-width: 1024px) {
+    ${({ isActive }) =>
+      isActive && `border-right: 2px solid #000 !important; box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1) !important;`}
+  }
 `;
 
 const List: React.FC<ListProps> = ({ id, todos, onSelectTask }) => {
@@ -32,7 +40,7 @@ const List: React.FC<ListProps> = ({ id, todos, onSelectTask }) => {
     <div className="h-full w-full overflow-y-auto" style={{ padding: '4px', height: '100%' }}>
       {todos.length === 0 ? (
         <StyledCard className="h-40 flex items-center justify-center">
-          <Text className="text-gray-400 text-center">No tasks. Create a new task!</Text>
+          <Text className="text-gray-400 text-center">No tasks</Text>
         </StyledCard>
       ) : (
         <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>

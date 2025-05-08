@@ -27,16 +27,27 @@ const { Title } = Typography;
 const TodoList = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [todos, setTodos] = useState<Task[]>([]);
-
+  const [search, setSearch] = useState<string>('');
+  const [filterByStatus, setFilterByStatus] = useState<string>(ALL_STATUS);
   const fetchTodos = () => {
     const data = getTodosByLocalStorage();
-    setTodos(data);
+    let filteredData = [...data];
+
+    if (filterByStatus !== ALL_STATUS) {
+      filteredData = filteredData.filter((todo: Task) => todo.status === filterByStatus);
+    }
+
+    if (search) {
+      filteredData = filteredData.filter((todo: Task) => todo.title.toLowerCase().includes(search.toLowerCase()));
+    }
+
+    setTodos(filteredData);
     return data;
   };
 
   useEffect(() => {
     fetchTodos();
-  }, []);
+  }, [search, filterByStatus]);
 
   const handleSelectTask = (id: string) => {
     setSelectedTaskId(id);
@@ -49,13 +60,7 @@ const TodoList = () => {
   };
 
   const handleSearch = (query: string) => {
-    if (query) {
-      const data = getTodosByLocalStorage();
-      const filteredTodos = data.filter((todo: Task) => todo.title.toLowerCase().includes(query.toLowerCase()));
-      setTodos(filteredTodos);
-    } else {
-      fetchTodos();
-    }
+    setSearch(query);
   };
 
   const handleCreateTask = () => {
@@ -68,21 +73,19 @@ const TodoList = () => {
   };
 
   const handleChangeStatus = (status: string) => {
-    const data = getTodosByLocalStorage();
-    const filteredTodos = data.filter((todo: Task) => (status === ALL_STATUS ? true : todo.status === status));
-    setTodos(filteredTodos);
+    setFilterByStatus(status);
   };
 
   return (
     <Container>
-      <Row gutter={16} className="h-full" style={{ minHeight: 'calc(100vh - 40px)' }}>
-        <Col className="h-full" span={8} style={{ display: 'flex', flexDirection: 'column' }}>
+      <Row gutter={16} className="h-full">
+        <Col className="lg:h-full" xs={24} lg={8} style={{ display: 'flex', flexDirection: 'column' }}>
           <Toolbar onChangeStatus={handleChangeStatus} onSearch={handleSearch} onCreateTask={handleCreateTask} />
           <div className="flex overflow-hidden">
             <List id={selectedTaskId || ''} onSelectTask={handleSelectTask} todos={[...todos].reverse()} />
           </div>
         </Col>
-        <Col span={15} className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
+        <Col xs={24} lg={15} className="h-full mt-3 lg:mt-0" style={{ display: 'flex', flexDirection: 'column' }}>
           {!selectedTaskId ? (
             <StyledCard>
               <div className="h-full flex items-center justify-center">
